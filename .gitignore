@@ -1,0 +1,36 @@
+# Arquivos de build
+/build/
+*.o
+*.out
+*.exe
+*.dll
+*.so
+*.a
+*.lib
+
+# Arquivos temporários
+*.tmp
+*.bak
+*.swp
+*~
+.vscode/
+
+# Arquivos de configuração específicos do IDE
+.project
+.classpath
+.settings/
+.vscode/
+
+# Arquivos de debug
+*.pdb
+
+# Arquivos de log
+*.log
+
+# Arquivos de configuração do sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos de biblioteca
+*.la
+*.lai
