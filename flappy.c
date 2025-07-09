@@ -14,6 +14,8 @@ GLuint birdTextureID; // ID da textura do pássaro
 int birdTextureWidth, birdTextureHeight, birdTextureChannels;
 GLuint pipeTextureID;
 int pipeTextureWidth, pipeTextureHeight, pipeTextureChannels;
+GLuint backgroundTextureID;
+int bgTextureWidth, bgTextureHeight, bgTextureChannels;
 
 // -------------------
 // Constantes do Jogo
@@ -21,11 +23,11 @@ int pipeTextureWidth, pipeTextureHeight, pipeTextureChannels;
 #define SCREEN_WIDTH 600
 #define SCREEN_HEIGHT 800
 
-#define GRAVITY -0.16f
-#define FLAP_FORCE 5.0f
+#define GRAVITY -0.32f //-0.16
+#define FLAP_FORCE 6.5f // 5.0
 #define PIPE_SPEED 2.0f
 
-#define TIMER_MS 8 
+#define TIMER_MS 1
 
 // -------------------
 // Variáveis Globais de Estado
@@ -103,6 +105,20 @@ void drawPipes() {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+void drawStaticBackground(){
+     glColor3f(1.0, 1.0, 1.0);
+    glBindTexture(GL_TEXTURE_2D, backgroundTextureID);
+    // Desenha um retângulo do tamanho da tela
+    glBegin(GL_QUADS);
+        glTexCoord2f(0.0, 0.0); glVertex2f(0, 0);                          // Canto inferior esquerdo
+        glTexCoord2f(1.0, 0.0); glVertex2f(SCREEN_WIDTH, 0);               // Canto inferior direito
+        glTexCoord2f(1.0, 1.0); glVertex2f(SCREEN_WIDTH, SCREEN_HEIGHT);   // Canto superior direito
+        glTexCoord2f(0.0, 1.0); glVertex2f(0, SCREEN_HEIGHT);              // Canto superior esquerdo
+    glEnd();
+    // "Desseleciona" a textura para não afetar outros desenhos
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 void drawScore() {
     char scoreText[32];
     sprintf(scoreText, "Score: %d\nRecord: %d", score, maxScore);
@@ -146,6 +162,18 @@ void loadTextures() {
      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pipeTextureWidth, pipeTextureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
      stbi_image_free(imageData);
 
+    imageData = stbi_load("ceu.png", &bgTextureWidth, &bgTextureHeight, &bgTextureChannels, 4);
+    if (imageData == NULL) {
+        printf("Erro ao carregar a imagem de fundo!\n");
+        return;
+    }
+    glGenTextures(1, &backgroundTextureID);
+    glBindTexture(GL_TEXTURE_2D, backgroundTextureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bgTextureWidth, bgTextureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
+    stbi_image_free(imageData);
+
  }
 
 // -------------------
@@ -157,6 +185,7 @@ void display() {
     glClear(GL_COLOR_BUFFER_BIT);
     glLoadIdentity();    
     // Desenha os elementos do jogo
+    drawStaticBackground();
     drawPipes();
     drawBird();
     drawScore();
@@ -189,7 +218,7 @@ void update(int value) {
             // Define uma nova altura aleatória para o buraco
             pipeGapY = (rand() % (SCREEN_HEIGHT - 300)) + 150;
             // Define um tamanho do gap do cano
-            pipe_gap_size = (rand() %51) + 150;
+            pipe_gap_size = (rand() %51) + 125;
             // Aumenta o score
             score++;
             // Se o score for um multiplo de 10, a velocidade do jogo vai aumentar
@@ -214,20 +243,6 @@ void update(int value) {
         float pipeRight = pipeX + PIPE_WIDTH;
         if ((birdTop >= pipeTop || birdBottom <= pipeBottom) && birdRight >= pipeLeft && birdLeft <= pipeRight){
                 isGameOver = 1;
-        }
-
-        // --- ATUALIZAÇÃO DO PARALLAX ---
-        // As montanhas se movem a 20% da velocidade dos canos
-        montanhasScrollX -= PIPE_SPEED * 0.2f;
-        // A cidade se move a 50% da velocidade dos canos
-        cidadeScrollX -= PIPE_SPEED * 0.5f;
-
-        // Para evitar que a imagem "acabe", resetamos a posição quando ela se moveu o suficiente
-        if (montanhasScrollX < -SCREEN_WIDTH) {
-            montanhasScrollX = 0;
-        }
-        if (cidadeScrollX < -SCREEN_WIDTH) {
-            cidadeScrollX = 0;
         }
 
     }else{
